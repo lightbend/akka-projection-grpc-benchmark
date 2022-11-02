@@ -96,6 +96,14 @@ object ShoppingCartEventConsumer {
         throughputCount = 0
         throughputStartTime = System.nanoTime
       }
+
+      val projectionLag: Long = System.currentTimeMillis() - envelope.timestamp
+      if(projectionLag > 2000) {
+        log.info(
+          "Projection [{}] lag greater than 2 seconds [{}] ms",
+          projectionId.id,
+          projectionLag)
+      }
       Future.successful(Done)
     }
   }
@@ -118,15 +126,15 @@ object ShoppingCartEventConsumer {
       { idx =>
         val sliceRange = sliceRanges(idx)
         val projectionKey =
-          s"${eventsBySlicesQuery.streamId}-${sliceRange.start}-${sliceRange.end}"
+          s"${eventsBySlicesQuery.streamId}-${sliceRange.min}-${sliceRange.max}"
         val projectionId = ProjectionId.of(projectionName, projectionKey)
 
         val sourceProvider = EventSourcedProvider.eventsBySlices[AnyRef](
           system,
           eventsBySlicesQuery,
           eventsBySlicesQuery.streamId,
-          sliceRange.start,
-          sliceRange.end)
+          sliceRange.min,
+          sliceRange.max)
 
         ProjectionBehavior(
           R2dbcProjection.atLeastOnceAsync(

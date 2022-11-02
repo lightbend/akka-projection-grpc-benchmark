@@ -1,6 +1,5 @@
 package shopping.cart
 
-import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.ActorSystem
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
@@ -13,7 +12,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val system =
-      ActorSystem[Nothing](Behaviors.empty, "ShoppingCartService")
+      ActorSystem(Simulator.createMany(), "ShoppingCartService")
     try {
       init(system)
     } catch {
@@ -28,6 +27,7 @@ object Main {
     ClusterBootstrap(system).start()
 
     ShoppingCart.init(system)
+    PublishKafkaEventsProjection.init(system)
 
     val eventProducerService = PublishEvents.eventProducerService(system)
 
@@ -36,7 +36,12 @@ object Main {
     val grpcPort =
       system.settings.config.getInt("shopping-cart-service.grpc.port")
     val grpcService = new ShoppingCartServiceImpl(system)
-    ShoppingCartServer.start(grpcInterface, grpcPort, system, grpcService, eventProducerService)
+    ShoppingCartServer.start(
+      grpcInterface,
+      grpcPort,
+      system,
+      grpcService,
+      eventProducerService)
   }
 
 }

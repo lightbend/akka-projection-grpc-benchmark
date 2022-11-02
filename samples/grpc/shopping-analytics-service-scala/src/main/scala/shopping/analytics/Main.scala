@@ -27,7 +27,8 @@ object Main {
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
 
-    ShoppingCartEventConsumer.init(system)
+//    ShoppingCartEventConsumer.init(system)
+    KafkaShoppingCartEventConsumer.init(system)
   }
 
 }

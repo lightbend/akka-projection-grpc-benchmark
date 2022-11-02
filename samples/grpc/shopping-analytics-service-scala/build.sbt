@@ -39,7 +39,16 @@ enablePlugins(AkkaGrpcPlugin)
 enablePlugins(JavaAppPackaging, DockerPlugin)
 dockerBaseImage := "docker.io/library/adoptopenjdk:11-jre-hotspot"
 dockerUsername := sys.props.get("docker.username")
-dockerRepository := sys.props.get("docker.registry")
+// dockerRepository := sys.props.get("docker.registry")
+dockerRepository := Some("ghcr.io")
+dockerUpdateLatest := true
+dockerBuildCommand := {
+  if (sys.props("os.arch") != "amd64") {
+    // use buildx with platform to build supported amd64 images on other CPU architectures
+    // this may require that you have first run 'docker buildx create' to set docker buildx up
+    dockerExecCommand.value ++ Seq("buildx", "build", "--platform=linux/amd64", "--load") ++ dockerBuildOptions.value :+ "."
+  } else dockerBuildCommand.value
+}
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
@@ -56,6 +65,7 @@ libraryDependencies ++= Seq(
   "com.lightbend.akka.management" %% "akka-management-cluster-http" % AkkaManagementVersion,
   "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % AkkaManagementVersion,
   "com.typesafe.akka" %% "akka-discovery" % AkkaVersion,
+  "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % AkkaManagementVersion,
   // Common dependencies for logging and testing
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",
@@ -72,4 +82,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-persistence-query" % AkkaVersion,
   "com.lightbend.akka" %% "akka-projection-grpc" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-eventsourced" % AkkaProjectionVersion,
+  "com.lightbend.akka" %% "akka-projection-kafka" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-testkit" % AkkaProjectionVersion % Test)

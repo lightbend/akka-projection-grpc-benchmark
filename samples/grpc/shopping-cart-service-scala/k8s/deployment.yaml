@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shoppingcartservice
+  name: shopping-cart-service
+  namespace: akka-grpc-projection
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: shoppingcartservice
+  template:
+    metadata:
+      labels:
+        app: shoppingcartservice
+        actorSystemName: ShoppingCartService
+    spec:
+      containers:
+        - name: shopping-cart-service
+          image: todo/shopping-cart-service:latest
+          imagePullPolicy: "Always"
+          resources:
+            limits:
+              memory: "2Gi"
+            requests:
+              memory: "2Gi"
+              cpu: "1800m"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka-management and bootstrap
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Dshopping-cart-service.grpc.port=8080 -Dakka.persistence.r2dbc.connection-factory.host=todo -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require -Dshopping-cart-service.simulator-count=10 -Dshopping-cart-service.simulator-delay=200ms"
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "1"
+            - name: DB_HOST
+              value: "todo"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: benchmark-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: benchmark-db-secret
+                  key: password
+      serviceAccountName: default
+
+      imagePullSecrets:
+        - name: dockerconfigjson-ghcr-io

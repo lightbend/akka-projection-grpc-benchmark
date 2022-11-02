@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+# if required to expose and test externally
+metadata:
+  name: shopping-cart-external-service
+  labels:
+    app: shoppingcartservice
+  namespace: akka-grpc-projection
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: shoppingcartservice

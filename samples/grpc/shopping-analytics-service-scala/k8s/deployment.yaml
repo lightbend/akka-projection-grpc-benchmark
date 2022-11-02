@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shoppinganalyticsservice
+  name: shopping-analytics-service
+  namespace: akka-grpc-projection
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: shoppinganalyticsservice
+  template:
+    metadata:
+      labels:
+        app: shoppinganalyticsservice
+        actorSystemName: ShoppingAnalyticsService
+    spec:
+      containers:
+        - name: shopping-analytics-service
+          image: todo/shopping-analytics-service:latest
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "1Gi"
+              cpu: "200m"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka-management and bootstrap
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "1"
+            - name: DB_HOST
+              value: "todo"
+            - name: GRPC_HOST
+              value: "shopping-cart-service-svc.akka-grpc-projection.svc.cluster.local"
+            - name: GRPC_PORT
+              value: "80"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: benchmark-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: benchmark-db-secret
+                  key: password
+      serviceAccountName: default
+      imagePullSecrets:
+        - name: dockerconfigjson-ghcr-io

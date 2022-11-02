@@ -147,11 +147,9 @@ object ShoppingCart {
   val EntityKey: EntityTypeKey[Command] =
     EntityTypeKey[Command]("ShoppingCart")
 
-  val tags = Vector.tabulate(5)(i => s"carts-$i")
-
   def init(system: ActorSystem[_]): Unit = {
-    ClusterSharding(system).init(
-      Entity(EntityKey)(entityContext => ShoppingCart(entityContext.entityId)))
+    ClusterSharding(system).init(Entity(EntityKey)(entityContext =>
+      ShoppingCart(entityContext.entityId)))
   }
 
   def apply(cartId: String): Behavior[Command] = {
