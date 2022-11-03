@@ -22,9 +22,10 @@ public class Simulator extends AbstractBehavior<Simulator.Command> {
  interface Command extends CborSerializable {
  }
 
+ public static final class Start implements Simulator.Command {
+ }
+
  public static final class NextCart implements Simulator.Command {
-  public NextCart() {
-  }
  }
 
  public static final class Next implements Simulator.Command {
@@ -70,18 +71,25 @@ public class Simulator extends AbstractBehavior<Simulator.Command> {
   sharding = ClusterSharding.get(ctx.getSystem());
   timeout = ctx.getSystem().settings().config().getDuration("shopping-cart-service.ask-timeout");
   delay = ctx.getSystem().settings().config().getDuration("shopping-cart-service.simulator-delay");
+  Duration initialDelay = ctx.getSystem().settings().config().getDuration("shopping-cart-service.simulator-initial-delay");
 
-  ctx.setReceiveTimeout(Duration.ofSeconds(10), new NextCart());
-  timers.startSingleTimer(new NextCart(), Duration.ofMillis(5000));
+  timers.startSingleTimer(new Start(), initialDelay);
  }
 
  @Override
  public Receive<Command> createReceive() {
   return newReceiveBuilder()
+      .onMessage(Start.class, this::onStart)
       .onMessage(Delay.class, this::onDelay)
       .onMessage(NextCart.class, this::onNextCart)
       .onMessage(Next.class, this::onNext)
       .build();
+ }
+
+ private Behavior<Command> onStart(Start start) {
+  getContext().setReceiveTimeout(Duration.ofSeconds(10), new NextCart());
+  timers.startSingleTimer(new NextCart(), delay);
+  return this;
  }
 
  private Behavior<Command> onDelay(Delay d) {

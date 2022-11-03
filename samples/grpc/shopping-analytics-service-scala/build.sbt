@@ -30,25 +30,29 @@ Global / cancelable := false // ctrl-c
 val AkkaVersion = "2.7.0"
 val AkkaHttpVersion = "10.4.0"
 val AkkaManagementVersion = "1.2.0"
-val AkkaPersistenceR2dbcVersion = "1.0.0"
+val AkkaPersistenceR2dbcVersion = "1.0.0+6-04eb697d-SNAPSHOT"
 val AkkaProjectionVersion =
   sys.props.getOrElse("akka-projection.version", "1.3.0")
 
 enablePlugins(AkkaGrpcPlugin)
 
 enablePlugins(JavaAppPackaging, DockerPlugin)
-dockerBaseImage := "docker.io/library/adoptopenjdk:11-jre-hotspot"
+dockerBaseImage := "eclipse-temurin:17.0.3_7-jre-jammy"
 dockerUsername := sys.props.get("docker.username")
-// dockerRepository := sys.props.get("docker.registry")
-dockerRepository := Some("ghcr.io")
+dockerRepository := sys.props.get("docker.registry")
+//dockerRepository := Some("ghcr.io")
 dockerUpdateLatest := true
-dockerBuildCommand := {
-  if (sys.props("os.arch") != "amd64") {
-    // use buildx with platform to build supported amd64 images on other CPU architectures
-    // this may require that you have first run 'docker buildx create' to set docker buildx up
-    dockerExecCommand.value ++ Seq("buildx", "build", "--platform=linux/amd64", "--load") ++ dockerBuildOptions.value :+ "."
-  } else dockerBuildCommand.value
-}
+//dockerBuildCommand := {
+//  if (sys.props("os.arch") != "amd64") {
+//    // use buildx with platform to build supported amd64 images on other CPU architectures
+//    // this may require that you have first run 'docker buildx create' to set docker buildx up
+//    dockerExecCommand.value ++ Seq(
+//      "buildx",
+//      "build",
+//      "--platform=linux/amd64",
+//      "--load") ++ dockerBuildOptions.value :+ "."
+//  } else dockerBuildCommand.value
+//}
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
@@ -83,4 +87,5 @@ libraryDependencies ++= Seq(
   "com.lightbend.akka" %% "akka-projection-grpc" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-eventsourced" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-kafka" % AkkaProjectionVersion,
-  "com.lightbend.akka" %% "akka-projection-testkit" % AkkaProjectionVersion % Test)
+  "com.lightbend.akka" %% "akka-projection-testkit" % AkkaProjectionVersion % Test,
+  "org.hdrhistogram" % "HdrHistogram" % "2.1.12")

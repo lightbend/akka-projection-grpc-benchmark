@@ -27,8 +27,11 @@ object Main {
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
 
-//    ShoppingCartEventConsumer.init(system)
-    KafkaShoppingCartEventConsumer.init(system)
+    if (system.settings.config.getBoolean(
+        "shopping-analytics-service.kafka.enabled"))
+      KafkaShoppingCartEventConsumer.init(system)
+    else
+      ShoppingCartEventConsumer.init(system)
   }
 
 }

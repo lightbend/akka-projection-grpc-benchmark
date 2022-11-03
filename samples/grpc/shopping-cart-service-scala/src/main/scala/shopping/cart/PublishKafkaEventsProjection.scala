@@ -25,7 +25,7 @@ object PublishKafkaEventsProjection {
     val topic =
       system.settings.config.getString("shopping-cart-service.kafka.topic")
 
-    val numberOfSliceRanges: Int = 4
+    val numberOfSliceRanges: Int = 16
     val sliceRanges = EventSourcedProvider.sliceRanges(
       system,
       R2dbcReadJournal.Identifier,

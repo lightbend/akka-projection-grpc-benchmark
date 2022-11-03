@@ -18,14 +18,13 @@ spec:
     spec:
       containers:
         - name: shopping-cart-service
-          image: todo/shopping-cart-service:latest
-          imagePullPolicy: "Always"
+          image: todo/shopping-cart-service:todo
           resources:
             limits:
               memory: "2Gi"
             requests:
               memory: "2Gi"
-              cpu: "1800m"
+              cpu: "3500m"
           readinessProbe:
             httpGet:
               path: /ready
@@ -54,7 +53,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Dshopping-cart-service.grpc.port=8080 -Dakka.persistence.r2dbc.connection-factory.host=todo -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require -Dshopping-cart-service.simulator-count=10 -Dshopping-cart-service.simulator-delay=200ms"
+              value: "-Dshopping-cart-service.kafka.enabled=off -Dakka.persistence.r2dbc.journal.publish-events=on -Dshopping-cart-service.simulator-count=8 -Dshopping-cart-service.simulator-delay=200ms -Dshopping-cart-service.simulator-initial-delay=60s -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -XX:+AlwaysActAsServerClassMachine -Dshopping-cart-service.grpc.port=8080 -Dakka.persistence.r2dbc.connection-factory.host=10.8.205.4 -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
             - name: DB_HOST
@@ -71,5 +70,3 @@ spec:
                   key: password
       serviceAccountName: default
 
-      imagePullSecrets:
-        - name: dockerconfigjson-ghcr-io

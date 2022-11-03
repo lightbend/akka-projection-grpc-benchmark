@@ -27,7 +27,9 @@ object Main {
     ClusterBootstrap(system).start()
 
     ShoppingCart.init(system)
-    PublishKafkaEventsProjection.init(system)
+    if (system.settings.config.getBoolean(
+        "shopping-cart-service.kafka.enabled"))
+      PublishKafkaEventsProjection.init(system)
 
     val eventProducerService = PublishEvents.eventProducerService(system)
 

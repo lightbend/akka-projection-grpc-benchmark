@@ -29,81 +29,55 @@ object ShoppingCartEventConsumer {
 
   //#eventHandler
   private class EventHandler(projectionId: ProjectionId)
-      extends Handler[EventEnvelope[AnyRef]] {
-    private var totalCount = 0
-    private var throughputStartTime = System.nanoTime()
-    private var throughputCount = 0
+      extends Handler[EventEnvelope[AnyRef]]
+      with Measure {
+
+    override val logId: String = projectionId.id
 
     override def start(): Future[Done] = {
       log.info("Started Projection [{}].", projectionId.id)
       super.start()
     }
     override def stop(): Future[Done] = {
-      log.info(
-        "Stopped Projection [{}]. Consumed [{}] events.",
-        projectionId.id,
-        totalCount)
+      log.info("Stopped Projection [{}]", projectionId.id)
       super.stop()
     }
 
     override def process(envelope: EventEnvelope[AnyRef]): Future[Done] = {
       val event = envelope.event
-      totalCount += 1
 
       event match {
         case itemAdded: ItemAdded =>
-          log.info(
+          log.debug(
             "Projection [{}] consumed ItemAdded for cart {}, added {} {}. Total [{}] events.",
             projectionId.id,
             itemAdded.cartId,
             itemAdded.quantity,
-            itemAdded.itemId,
-            totalCount)
+            itemAdded.itemId)
         case quantityAdjusted: ItemQuantityAdjusted =>
-          log.info(
+          log.debug(
             "Projection [{}] consumed ItemQuantityAdjusted for cart {}, changed {} {}. Total [{}] events.",
             projectionId.id,
             quantityAdjusted.cartId,
             quantityAdjusted.quantity,
-            quantityAdjusted.itemId,
-            totalCount)
+            quantityAdjusted.itemId)
         case itemRemoved: ItemRemoved =>
-          log.info(
+          log.debug(
             "Projection [{}] consumed ItemRemoved for cart {}, removed {}. Total [{}] events.",
             projectionId.id,
             itemRemoved.cartId,
-            itemRemoved.itemId,
-            totalCount)
+            itemRemoved.itemId)
         case checkedOut: CheckedOut =>
-          log.info(
+          log.debug(
             "Projection [{}] consumed CheckedOut for cart {}. Total [{}] events.",
             projectionId.id,
-            checkedOut.cartId,
-            totalCount)
+            checkedOut.cartId)
         case unknown =>
           throw new IllegalArgumentException(s"Unknown event $unknown")
       }
 
-      throughputCount += 1
-      val durationMs: Long =
-        (System.nanoTime - throughputStartTime) / 1000 / 1000
-      if (throughputCount >= 1000 || durationMs >= 10000) {
-        log.info(
-          "Projection [{}] throughput [{}] events/s in [{}] ms",
-          projectionId.id,
-          1000L * throughputCount / durationMs,
-          durationMs)
-        throughputCount = 0
-        throughputStartTime = System.nanoTime
-      }
+      processedEvent(envelope.timestamp)
 
-      val projectionLag: Long = System.currentTimeMillis() - envelope.timestamp
-      if(projectionLag > 2000) {
-        log.info(
-          "Projection [{}] lag greater than 2 seconds [{}] ms",
-          projectionId.id,
-          projectionLag)
-      }
       Future.successful(Done)
     }
   }
@@ -112,7 +86,7 @@ object ShoppingCartEventConsumer {
   //#initProjections
   def init(system: ActorSystem[_]): Unit = {
     implicit val sys: ActorSystem[_] = system
-    val numberOfProjectionInstances = 4
+    val numberOfProjectionInstances = 16
     val projectionName: String = "cart-events"
     val sliceRanges =
       Persistence(system).sliceRanges(numberOfProjectionInstances)

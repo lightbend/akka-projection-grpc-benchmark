@@ -27,7 +27,8 @@ class PublishKafkaEventsProjectionHandler(
     // using the cartId as the key and `DefaultPartitioner` will select partition based on the key
     // so that events for same cart always ends up in same partition
     val key = event.cartId
-    val producerRecord = new ProducerRecord(topic, key, serialize(event))
+    val producerRecord =
+      new ProducerRecord(topic, null, envelope.timestamp, key, serialize(event))
     val result = sendProducer.send(producerRecord).map { recordMetadata =>
       log.info(
         "Published event [{}] to topic/partition {}/{}",
