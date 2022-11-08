@@ -30,10 +30,14 @@ Global / cancelable := false // ctrl-c
 val AkkaVersion = "2.7.0"
 val AkkaHttpVersion = "10.4.0"
 val AkkaManagementVersion = "1.2.0"
-val AkkaPersistenceR2dbcVersion = "1.0.0+6-04eb697d-SNAPSHOT"
+val AkkaPersistenceR2dbcVersion = "1.0.1"
 val AlpakkaKafkaVersion = "4.0.0"
 val AkkaProjectionVersion =
   sys.props.getOrElse("akka-projection.version", "1.3.0")
+
+resolvers +=
+  "Sonatype Snapshots".at(
+    "https://oss.sonatype.org/content/repositories/snapshots")
 
 enablePlugins(AkkaGrpcPlugin)
 
