@@ -54,3 +54,11 @@
     ```
 
     or same `grpcurl` commands to port 8102 to reach node 2.
+
+## Simulated load
+
+For performance testing it is starting simulated load. This load can be adjusted at runtime with grpcurl:
+
+```shell
+grpcurl -d '{"count":50, "delayMillis":100, "initialDelayMillis":1000}' -plaintext 127.0.0.1:8101 shoppingcart.SimulatorService.StartSimulators
+```

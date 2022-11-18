@@ -13,6 +13,7 @@
     </appender>
 
     <logger name="akka.persistence.r2dbc.query" level="DEBUG" />
+    <logger name="akka.persistence.r2dbc.internal.PubSub" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="ASYNC"/>

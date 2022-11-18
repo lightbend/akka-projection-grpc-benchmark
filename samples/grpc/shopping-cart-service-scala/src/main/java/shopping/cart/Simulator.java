@@ -41,21 +41,10 @@ public class Simulator extends AbstractBehavior<Simulator.Command> {
   }
  }
 
- public static Behavior<Void> createMany() {
-  return Behaviors.setup(ctx -> {
-       int n = ctx.getSystem().settings().config().getInt("shopping-cart-service.simulator-count");
-       for (int i = 0; i < n; i++) {
-        ctx.spawn(create(), "simulator-" + i);
-       }
-       return Behaviors.empty();
-      }
-  );
- }
-
- public static Behavior<Simulator.Command> create() {
+ public static Behavior<Simulator.Command> create(Duration delay, Duration initialDelay) {
   return Behaviors.setup(ctx ->
       Behaviors.withTimers(timers ->
-          new Simulator(ctx, timers)));
+          new Simulator(ctx, timers, delay, initialDelay)));
  }
 
  private final TimerScheduler<Command> timers;
@@ -65,13 +54,12 @@ public class Simulator extends AbstractBehavior<Simulator.Command> {
 
  private String cart = "";
 
- public Simulator(ActorContext<Command> ctx, TimerScheduler<Command> timers) {
+ public Simulator(ActorContext<Command> ctx, TimerScheduler<Command> timers, Duration delay, Duration initialDelay) {
   super(ctx);
   this.timers = timers;
   sharding = ClusterSharding.get(ctx.getSystem());
   timeout = ctx.getSystem().settings().config().getDuration("shopping-cart-service.ask-timeout");
-  delay = ctx.getSystem().settings().config().getDuration("shopping-cart-service.simulator-delay");
-  Duration initialDelay = ctx.getSystem().settings().config().getDuration("shopping-cart-service.simulator-initial-delay");
+  this.delay = delay;
 
   timers.startSingleTimer(new Start(), initialDelay);
  }

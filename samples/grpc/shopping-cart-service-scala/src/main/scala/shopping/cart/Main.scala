@@ -12,7 +12,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val system =
-      ActorSystem(Simulator.createMany(), "ShoppingCartService")
+      ActorSystem(SimulatorManager.create(), "ShoppingCartService")
     try {
       init(system)
     } catch {
@@ -22,7 +22,7 @@ object Main {
     }
   }
 
-  def init(system: ActorSystem[_]): Unit = {
+  def init(system: ActorSystem[SimulatorManager.Command]): Unit = {
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
 
@@ -37,12 +37,14 @@ object Main {
       system.settings.config.getString("shopping-cart-service.grpc.interface")
     val grpcPort =
       system.settings.config.getInt("shopping-cart-service.grpc.port")
-    val grpcService = new ShoppingCartServiceImpl(system)
+    val shoppingCartService = new ShoppingCartServiceImpl(system)
+    val simulatorService = new SimulatorServiceImpl(system)
     ShoppingCartServer.start(
       grpcInterface,
       grpcPort,
       system,
-      grpcService,
+      shoppingCartService,
+      simulatorService,
       eventProducerService)
   }
 
