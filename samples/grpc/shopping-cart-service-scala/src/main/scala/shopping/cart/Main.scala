@@ -1,19 +1,14 @@
 package shopping.cart
 
 import akka.actor.typed.ActorSystem
-import akka.grpc.GrpcClientSettings
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
-import akka.persistence.typed.ReplicaId
-import akka.projection.grpc.consumer.GrpcQuerySettings
-import akka.projection.grpc.producer.EventProducerSettings
-import akka.projection.grpc.replication.Replica
 import akka.projection.grpc.replication.ReplicationSettings
 import akka.projection.grpc.replication.scaladsl.Replication
-import com.typesafe.config.Config
+import akka.projection.grpc.replication.scaladsl.ReplicationProjectionProvider
+import akka.projection.r2dbc.scaladsl.R2dbcProjection
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
 object Main {
@@ -71,30 +66,13 @@ object Main {
 
   private def setUpReplication()(
       implicit system: ActorSystem[_]): Replication[ShoppingCart.Command] = {
-    // FIXME from config
-    val selfReplicaId = ReplicaId(
-      system.settings.config
-        .getString("shopping-cart-service.replication.self-replica-id"))
+    val projectionProvider: ReplicationProjectionProvider =
+      R2dbcProjection.atLeastOnceFlow(_, None, _, _)(_)
+    val replicationSettings =
+      ReplicationSettings[ShoppingCart.Command](
+        "replicated-shopping-cart",
+        projectionProvider)
 
-    val allReplicas = system.settings.config
-      .getConfigList("shopping-cart-service.replication.replicas")
-      .asScala
-      .toSet
-      .map { config: Config =>
-        val replicaId = config.getString("replica-id")
-        Replica(
-          ReplicaId(replicaId),
-          numberOfConsumers = config.getInt("number-of-consumers"),
-          querySettings = GrpcQuerySettings(system), // FIXME ok to share?
-          // so akka.grpc.client.[replica-id]
-          grpcClientSettings = GrpcClientSettings.fromConfig(replicaId))
-      }
-
-    val replicationSettings = ReplicationSettings[ShoppingCart.Command](
-      "cart",
-      selfReplicaId,
-      EventProducerSettings(system),
-      allReplicas.filter(_.replicaId != selfReplicaId))
     Replication.grpcReplication[
       ShoppingCart.Command,
       ReplicatedShoppingCart.Event,
