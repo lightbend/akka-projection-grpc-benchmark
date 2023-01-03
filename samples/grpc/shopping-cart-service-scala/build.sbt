@@ -33,7 +33,7 @@ val AkkaManagementVersion = "1.2.0"
 val AkkaPersistenceR2dbcVersion = "1.0.1"
 val AlpakkaKafkaVersion = "4.0.0"
 val AkkaProjectionVersion =
-  sys.props.getOrElse("akka-projection.version", "1.3.0-42-f6c8b3c3-SNAPSHOT")
+  sys.props.getOrElse("akka-projection.version", "1.3.0-43-1a1809ab-SNAPSHOT")
 
 resolvers +=
   "Sonatype Snapshots".at(
@@ -47,17 +47,17 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 // dockerRepository := Some("ghcr.io")
 dockerUpdateLatest := true
-//dockerBuildCommand := {
-//  if (sys.props("os.arch") != "amd64") {
-//    // use buildx with platform to build supported amd64 images on other CPU architectures
-//    // this may require that you have first run 'docker buildx create' to set docker buildx up
-//    dockerExecCommand.value ++ Seq(
-//      "buildx",
-//      "build",
-//      "--platform=linux/amd64",
-//      "--load") ++ dockerBuildOptions.value :+ "."
-//  } else dockerBuildCommand.value
-//}
+dockerBuildCommand := {
+  if (sys.props("os.arch") != "amd64") {
+    // use buildx with platform to build supported amd64 images on other CPU architectures
+    // this may require that you have first run 'docker buildx create' to set docker buildx up
+    dockerExecCommand.value ++ Seq(
+      "buildx",
+      "build",
+      "--platform=linux/amd64",
+      "--load") ++ dockerBuildOptions.value :+ "."
+  } else dockerBuildCommand.value
+}
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
