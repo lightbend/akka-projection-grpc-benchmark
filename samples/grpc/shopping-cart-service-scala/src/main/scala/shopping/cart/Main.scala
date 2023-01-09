@@ -33,7 +33,7 @@ object Main {
 
     val (eventProducerHandler, entityKey) =
       if (system.settings.config.getBoolean(
-          "shopping-cart-service.replication.enabled")) {
+          "replicated-shopping-cart.enabled")) {
         // Replicated Event Sourcing Shopping cart
         val replication = setUpReplication()(system)
         (replication.createSingleServiceHandler(), replication.entityTypeKey)

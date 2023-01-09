@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Simulator extends AbstractBehavior<Simulator.Command> {
  // Defining this here because mixing java and Scala
  private static final EntityTypeKey<ShoppingCart.Command> ENTITY_KEY =
-     EntityTypeKey.create(ShoppingCart.Command.class, ShoppingCart.EntityKey().name());
+     EntityTypeKey.create(ShoppingCart.Command.class, "replicated-shopping-cart");
 
  interface Command extends CborSerializable {
  }

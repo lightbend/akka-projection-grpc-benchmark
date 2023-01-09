@@ -7,7 +7,7 @@ metadata:
   name: shopping-cart-service
   namespace: akka-grpc-projection
 spec:
-  replicas: 4
+  replicas: 3
   selector:
     matchLabels:
       app: shoppingcartservice
@@ -19,13 +19,13 @@ spec:
     spec:
       containers:
         - name: shopping-cart-service
-          image: todo/shopping-cart-service:todo
-          resources:
-            limits:
-              memory: "2Gi"
-            requests:
-              memory: "2Gi"
-              cpu: "3500m"
+          image: gcr.io/akka-team/shopping-cart-service:0.0.0-12-e0d96543-20230109-1410
+          #resources:
+            #limits:
+            #  memory: "2Gi"
+            #requests:
+            #  memory: "2Gi"
+            #  cpu: "3500m"
           readinessProbe:
             httpGet:
               path: /ready
@@ -54,12 +54,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: JAVA_TOOL_OPTIONS
-              # -Dshopping-cart-service.simulator-count=8 -Dshopping-cart-service.simulator-delay=200ms -Dshopping-cart-service.simulator-initial-delay=60s
-              value: "-Dreplicated-shopping-cart=on -Dshopping-cart-service.kafka.enabled=off -Dakka.persistence.r2dbc.journal.publish-events=on -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -XX:+AlwaysActAsServerClassMachine -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
+              value: "-Dreplicated-shopping-cart.enabled=on -Dshopping-cart-service.kafka.enabled=off -Dshopping-cart-service.simulator-count=0 -Dakka.persistence.r2dbc.journal.publish-events=on -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -XX:+AlwaysActAsServerClassMachine -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
             - name: DB_HOST
-              value: "34.23.63.141"
+              value: "34.138.234.73"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -71,15 +70,14 @@ spec:
                   name: benchmark-db-secret
                   key: password
             - name: GRPC_PORT
-              value: "8081"
+              value: "8080"
             - name: SELF_REPLICA_ID
               value: "DCA"
             - name: DCA_HOST
-              value: "34.148.218.50"
+              value: "34.75.225.153"
             - name: DCB_HOST
-              value: "34.88.7.230"
-            - name: DCC_HOST
-              value: "34.83.134.133"
-
+              value: "34.170.245.137"
+            - name: PUBLIC_GRPC_PORT
+              value: "80"
       serviceAccountName: default
 
