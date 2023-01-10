@@ -78,6 +78,8 @@ libraryDependencies ++= Seq(
   // Common dependencies for logging and testing
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",
+  "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
+  "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
   // 2. Using gRPC and/or protobuf
   "com.typesafe.akka" %% "akka-http2-support" % AkkaHttpVersion,

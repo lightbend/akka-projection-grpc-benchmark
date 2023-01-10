@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
+
+    <appender name="JSON-STDOUT" target="System.out" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="shopping.cart.LogbackJsonLayout">
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter"/>
+            </layout>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC-JSON-STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="JSON-STDOUT"/>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="ASYNC-JSON-STDOUT"/>
+    </root>
+
     <appender name="STDOUT" target="System.out" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>[%date{ISO8601}] [%level] [%logger] [%X{akkaAddress}] [%marker] [%thread] - %msg%n</pattern>
@@ -16,7 +34,8 @@
     <logger name="akka.persistence.r2dbc.internal.PubSub" level="DEBUG" />
 
     <root level="INFO">
-        <appender-ref ref="ASYNC"/>
+        <!-- <appender-ref ref="ASYNC"/> -->
+        <appender-ref ref="ASYNC-JSON_STDOUT"/>
     </root>
 
 </configuration>
