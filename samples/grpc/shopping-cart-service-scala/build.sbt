@@ -27,13 +27,13 @@ run / javaOptions ++= sys.props
   .fold(Seq.empty[String])(res => Seq(s"-Dconfig.resource=$res"))
 Global / cancelable := false // ctrl-c
 
-val AkkaVersion = "2.7.0"
+val AkkaVersion = "2.8.0-M3"
 val AkkaHttpVersion = "10.4.0"
 val AkkaManagementVersion = "1.2.0"
 val AkkaPersistenceR2dbcVersion = "1.0.1"
 val AlpakkaKafkaVersion = "4.0.0"
 val AkkaProjectionVersion =
-  sys.props.getOrElse("akka-projection.version", "1.3.0")
+  sys.props.getOrElse("akka-projection.version", "1.3.0-48-ef8f50d3-SNAPSHOT")
 
 resolvers +=
   "Sonatype Snapshots".at(
@@ -47,17 +47,18 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 // dockerRepository := Some("ghcr.io")
 dockerUpdateLatest := true
-//dockerBuildCommand := {
-//  if (sys.props("os.arch") != "amd64") {
-//    // use buildx with platform to build supported amd64 images on other CPU architectures
-//    // this may require that you have first run 'docker buildx create' to set docker buildx up
-//    dockerExecCommand.value ++ Seq(
-//      "buildx",
-//      "build",
-//      "--platform=linux/amd64",
-//      "--load") ++ dockerBuildOptions.value :+ "."
-//  } else dockerBuildCommand.value
-//}
+dockerBuildCommand := {
+  val arch = sys.props("os.arch")
+  if (arch != "amd64" && !arch.contains("x86")) {
+    // use buildx with platform to build supported amd64 images on other CPU architectures
+    // this may require that you have first run 'docker buildx create' to set docker buildx up
+    dockerExecCommand.value ++ Seq(
+      "buildx",
+      "build",
+      "--platform=linux/amd64",
+      "--load") ++ dockerBuildOptions.value :+ "."
+  } else dockerBuildCommand.value
+}
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
@@ -78,6 +79,8 @@ libraryDependencies ++= Seq(
   // Common dependencies for logging and testing
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",
+  "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
+  "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
   // 2. Using gRPC and/or protobuf
   "com.typesafe.akka" %% "akka-http2-support" % AkkaHttpVersion,

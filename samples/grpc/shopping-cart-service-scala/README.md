@@ -1,4 +1,4 @@
-## Running the sample code
+## Running the sample code with Kafka locally
 
 1. Start a local PostgresSQL server on default port 5432 and a Kafka broker on port 9092. The included `docker-compose.yml` starts everything required for running locally.
 
