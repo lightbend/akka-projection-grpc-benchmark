@@ -27,11 +27,18 @@ object Main {
     AkkaManagement(system).start()
     ClusterBootstrap(system).start()
 
-    if (system.settings.config.getBoolean(
-        "shopping-analytics-service.kafka.enabled"))
-      KafkaShoppingCartEventConsumer.init(system)
-    else
-      ShoppingCartEventConsumer.init(system)
+    system.settings.config.getString(
+      "shopping-analytics-service.event-replication-mechanism") match {
+      case "kafka" =>
+        KafkaShoppingCartEventConsumer.init(system)
+      case "akka-projection-grpc" =>
+        ShoppingCartEventConsumer.init(system)
+      case "akka-projection-grpc-push" =>
+        ShoppingCartEventPushDestination.startGrpcServer()(system)
+        ShoppingCartEventPushDestination.startLocalProjection()(system)
+      case unknown =>
+        throw new IllegalArgumentException(s"Unknown mechanism '$unknown")
+    }
   }
 
 }

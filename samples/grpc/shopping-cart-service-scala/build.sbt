@@ -8,7 +8,7 @@ licenses := Seq(
 scalaVersion := "2.13.10"
 
 Compile / scalacOptions ++= Seq(
-  "-target:11",
+  "-release:11",
   "-deprecation",
   "-feature",
   "-unchecked",
@@ -27,17 +27,15 @@ run / javaOptions ++= sys.props
   .fold(Seq.empty[String])(res => Seq(s"-Dconfig.resource=$res"))
 Global / cancelable := false // ctrl-c
 
-val AkkaVersion = "2.7.0"
-val AkkaHttpVersion = "10.4.0"
-val AkkaManagementVersion = "1.2.0"
-val AkkaPersistenceR2dbcVersion = "1.0.1"
-val AlpakkaKafkaVersion = "4.0.0"
-val AkkaProjectionVersion =
-  sys.props.getOrElse("akka-projection.version", "1.3.0")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
-resolvers +=
-  "Sonatype Snapshots".at(
-    "https://oss.sonatype.org/content/repositories/snapshots")
+val AkkaVersion = "2.9.0-M3"
+val AkkaHttpVersion = "10.6.0-M2"
+val AkkaManagementVersion = "1.5.0-M2"
+val AkkaPersistenceR2dbcVersion = "1.2.0-M5"
+val AlpakkaKafkaVersion = "5.0.0-M1"
+val AkkaProjectionVersion =
+  sys.props.getOrElse("akka-projection.version", "1.5.0-M5")
 
 enablePlugins(AkkaGrpcPlugin)
 
@@ -79,16 +77,14 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
-  // 2. Using gRPC and/or protobuf
-  "com.typesafe.akka" %% "akka-http2-support" % AkkaHttpVersion,
-  // 3. Using Akka Persistence
+  // 2. Using Akka Persistence
   "com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-serialization-jackson" % AkkaVersion,
   "com.lightbend.akka" %% "akka-persistence-r2dbc" % AkkaPersistenceR2dbcVersion,
   "com.typesafe.akka" %% "akka-persistence-testkit" % AkkaVersion % Test,
-  // 4. Querying and publishing data from Akka Persistence
+  // 3. Querying and publishing data from Akka Persistence
   "com.typesafe.akka" %% "akka-persistence-query" % AkkaVersion,
-  "com.lightbend.akka" %% "akka-projection-r2dbc" % AkkaPersistenceR2dbcVersion,
+  "com.lightbend.akka" %% "akka-projection-r2dbc" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-grpc" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-eventsourced" % AkkaProjectionVersion,
   "com.lightbend.akka" %% "akka-projection-kafka" % AkkaProjectionVersion,
