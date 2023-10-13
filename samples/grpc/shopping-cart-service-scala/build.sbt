@@ -45,17 +45,7 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 // dockerRepository := Some("ghcr.io")
 dockerUpdateLatest := true
-//dockerBuildCommand := {
-//  if (sys.props("os.arch") != "amd64") {
-//    // use buildx with platform to build supported amd64 images on other CPU architectures
-//    // this may require that you have first run 'docker buildx create' to set docker buildx up
-//    dockerExecCommand.value ++ Seq(
-//      "buildx",
-//      "build",
-//      "--platform=linux/amd64",
-//      "--load") ++ dockerBuildOptions.value :+ "."
-//  } else dockerBuildCommand.value
-//}
+dockerBuildxPlatforms := Seq("linux/amd64")
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(

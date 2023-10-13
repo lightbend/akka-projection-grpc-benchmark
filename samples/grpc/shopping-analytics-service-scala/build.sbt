@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.dockerBuildxPlatforms
+
 name := "shopping-analytics-service"
 
 organization := "com.lightbend.akka.samples"
@@ -37,10 +39,6 @@ val AlpakkaKafkaVersion = "5.0.0-M1"
 val AkkaProjectionVersion =
   sys.props.getOrElse("akka-projection.version", "1.5.0-M5")
 
-resolvers +=
-  "Sonatype Snapshots".at(
-    "https://oss.sonatype.org/content/repositories/snapshots")
-
 enablePlugins(AkkaGrpcPlugin)
 
 enablePlugins(JavaAppPackaging, DockerPlugin)
@@ -49,17 +47,7 @@ dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
 //dockerRepository := Some("ghcr.io")
 dockerUpdateLatest := true
-//dockerBuildCommand := {
-//  if (sys.props("os.arch") != "amd64") {
-//    // use buildx with platform to build supported amd64 images on other CPU architectures
-//    // this may require that you have first run 'docker buildx create' to set docker buildx up
-//    dockerExecCommand.value ++ Seq(
-//      "buildx",
-//      "build",
-//      "--platform=linux/amd64",
-//      "--load") ++ dockerBuildOptions.value :+ "."
-//  } else dockerBuildCommand.value
-//}
+dockerBuildxPlatforms := Seq("linux/amd64")
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
