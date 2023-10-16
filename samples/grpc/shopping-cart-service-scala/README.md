@@ -57,8 +57,13 @@
 
 ## Simulated load
 
-For performance testing it is starting simulated load. This load can be adjusted at runtime with grpcurl:
+The simulator runs `shopping-cart-service.simulator-count` simulators on each node, each simulator chooses a UUID-random cart id, after choosing a cart it sequentially adds one item to it, changes the quantity of that item 5 times and then checks the cart out. It then pauses `shopping-cart-service.simulator-delay` and repeats the sequence with a new cart id. 
+
+An initial silence controlled by `shopping-cart-service.simulator-delay` allows the cluster to form and connections  set up to complete before starting the simulators.
+
+It is possible to start the service without a predefined load and trigger simulation at runtime with grpcurl:
 
 ```shell
 grpcurl -d '{"count":50, "delayMillis":100, "initialDelayMillis":1000}' -plaintext 127.0.0.1:8101 shoppingcart.SimulatorService.StartSimulators
 ```
+

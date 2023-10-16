@@ -9,6 +9,7 @@ import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.persistence.Persistence
 import akka.persistence.query.Offset
 import akka.persistence.query.typed.EventEnvelope
+import akka.persistence.query.typed.scaladsl.EventsBySliceFirehoseQuery
 import akka.persistence.r2dbc.query.scaladsl.R2dbcReadJournal
 import akka.projection.{ Projection, ProjectionBehavior, ProjectionId }
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
@@ -36,6 +37,9 @@ object ShoppingCartEventPushDestination {
     implicit val ec: ExecutionContext =
       system.executionContext
 
+    val measure = new Measure {
+      override def logId: String = "event-producer-push-destination"
+    }
     val destination = EventProducerPushDestination(
       StreamId,
       Seq(
@@ -44,9 +48,11 @@ object ShoppingCartEventPushDestination {
         shoppingcart.ItemQuantityAdjusted.javaDescriptor.getFile,
         shoppingcart.CheckedOut.javaDescriptor.getFile)).withTransformation(
       EventProducerPushDestination.Transformation.empty
-        .registerPersistenceIdMapper(envelope =>
+        .registerPersistenceIdMapper { envelope =>
           // rewrite type to be able to share the same db when running locally
-          envelope.persistenceId.replace("ShoppingCart", CartEntityType)))
+          measure.processedEvent(envelope.timestamp)
+          envelope.persistenceId.replace("ShoppingCart", CartEntityType)
+        })
     val handler = EventProducerPushDestination.grpcServiceHandler(destination)
 
     val service: HttpRequest => Future[HttpResponse] =
@@ -78,6 +84,8 @@ object ShoppingCartEventPushDestination {
 
   }
 
+  // Note:  this "Measure" will be about write to local journal until projection sees it
+  //        not the full lag from producer write to consumer projection sees it
   private class EventHandler(projectionId: ProjectionId)
       extends Handler[EventEnvelope[AnyRef]]
       with Measure {

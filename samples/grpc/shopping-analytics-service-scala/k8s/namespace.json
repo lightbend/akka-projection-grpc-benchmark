@@ -1,0 +1,11 @@
+{
+  "kind": "Namespace",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "akka-grpc-projection-namespace",
+    "labels": {
+      "name": "akka-grpc-projection-namespace"
+    }
+  }
+}
+
