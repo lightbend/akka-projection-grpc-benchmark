@@ -1,9 +1,12 @@
 package shopping.cart
 
 import akka.actor.typed.ActorSystem
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.management.scaladsl.AkkaManagement
 import org.slf4j.LoggerFactory
+
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 object Main {
@@ -27,11 +30,20 @@ object Main {
     ClusterBootstrap(system).start()
 
     ShoppingCart.init(system)
-    if (system.settings.config.getBoolean(
-        "shopping-cart-service.kafka.enabled"))
-      PublishKafkaEventsProjection.init(system)
+    var eventProducerService
+        : PartialFunction[HttpRequest, Future[HttpResponse]] =
+      PartialFunction.empty
 
-    val eventProducerService = PublishEvents.eventProducerService(system)
+    system.settings.config
+      .getString("shopping-cart-service.event-replication-mechanism") match {
+      case "kafka" =>
+        PublishKafkaEventsProjection.init(system)
+      case "akka-projection-grpc-push" =>
+        PublishPushEvents.startEventProducerPush()(system)
+      case "akka-projection-grpc" =>
+        eventProducerService = PublishEvents.eventProducerService(system)
+      case unknown => throw new IllegalArgumentException(s"Unknown mechanism '$unknown")
+    }
 
     val grpcInterface =
       system.settings.config.getString("shopping-cart-service.grpc.interface")

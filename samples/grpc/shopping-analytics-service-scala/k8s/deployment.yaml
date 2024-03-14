@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: shoppinganalyticsservice
+    app: shopping-analytics-service
   name: shopping-analytics-service
-  namespace: akka-grpc-projection
+  namespace: akka-grpc-projection-namespace
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: shoppinganalyticsservice
+      app: shopping-analytics-service
   template:
     metadata:
       labels:
-        app: shoppinganalyticsservice
-        actorSystemName: ShoppingAnalyticsService
+        app: shopping-analytics-service
+        actorSystemName: shopping-analytics-service
     spec:
       containers:
         - name: shopping-analytics-service
-          image: todo/shopping-analytics-service:todo
+          image: johanandren/shopping-analytics-service:0.0.0-10-ebc16bf4-20231016-1028
           resources:
             limits:
               memory: "2Gi"
@@ -45,6 +45,9 @@ spec:
               containerPort: 8558
               protocol: TCP
             - name: http
+              containerPort: 8101
+              protocol: TCP
+            - name: grpc
               containerPort: 8080
               protocol: TCP
           env:
@@ -53,24 +56,31 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: JAVA_TOOL_OPTIONS
-              value: "-Dshopping-analytics-service.kafka.enabled=off -DShoppingCartEventConsumer.lag-threshold-ms=2000 -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -XX:+AlwaysActAsServerClassMachine -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
+              value: "-Dshopping-analytics-service.event-replication-mechanism=akka-projection-grpc-push -DShoppingCartEventConsumer.lag-threshold-ms=2000 -XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -XX:+AlwaysActAsServerClassMachine -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=on -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
-            - name: DB_HOST
-              value: "todo"
             - name: GRPC_HOST
-              value: "shopping-cart-service-svc.akka-grpc-projection.svc.cluster.local"
+              value: "todo"
             - name: GRPC_PORT
               value: "80"
+            - name: GRPC_PUSH_PORT
+              value: "8080"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DB_HOST
+                  optional: true
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: benchmark-db-secret
-                  key: username
+                  name: db-secret
+                  key: DB_USER
+                  optional: true
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: benchmark-db-secret
-                  key: password
-      serviceAccountName: default
+                  name: db-secret
+                  key: DB_PASSWORD
+                  optional: true
 

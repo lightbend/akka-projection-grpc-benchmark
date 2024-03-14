@@ -101,6 +101,9 @@ object KafkaShoppingCartEventConsumer {
 
           case CheckedOut(cartId, _) =>
             log.debug("CheckedOut: cart {} checked out", cartId)
+
+          case unknown =>
+            log.debug(s"Unknown event ${unknown}")
         }
 
         processedEvent(record.timestamp())

@@ -3,12 +3,12 @@ kind: Service
 metadata:
   name: shopping-cart-service-svc
   labels:
-    app: shoppingcartservice
-  namespace: akka-grpc-projection
+    app: shopping-cart-service
+  namespace: akka-grpc-projection-namespace
 spec:
   ports:
     - port: 80
       protocol: TCP
       targetPort: 8080
   selector:
-    app: shoppingcartservice
+    app: shopping-cart-service

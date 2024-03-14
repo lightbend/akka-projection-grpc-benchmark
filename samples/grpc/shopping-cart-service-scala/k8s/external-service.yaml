@@ -4,8 +4,8 @@ kind: Service
 metadata:
   name: shopping-cart-external-service
   labels:
-    app: shoppingcartservice
-  namespace: akka-grpc-projection
+    app: shopping-cart-service
+  namespace: akka-grpc-projection-namespace
 spec:
   type: LoadBalancer
   ports:
@@ -13,4 +13,4 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app: shoppingcartservice
+    app: shopping-cart-service
